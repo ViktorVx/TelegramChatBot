@@ -42,7 +42,7 @@ last_name : string
       <data key="d4"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="147.0" width="231.0" x="252.0" y="147.0"/>
+          <y:Geometry height="192.0" width="231.0" x="252.0" y="147.0"/>
           <y:Fill color="#CCFFCC" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="63.9599609375" x="83.52001953125" y="3.0">Reminder<y:LabelModel>
@@ -57,12 +57,12 @@ last_name : string
 text : string
 date :date
 time : time
-circleType : CircleType
 circleParameter : string
 isComplete : boolean
 
 </y:AttributeLabel>
-            <y:MethodLabel/>
+            <y:MethodLabel>circleType : CircleType
+parentReminder: Reminder</y:MethodLabel>
           </y:UML>
         </y:UMLClassNode>
       </data>
@@ -97,7 +97,10 @@ year - год
     <edge id="e0" source="n1" target="n0">
       <data key="d10">
         <y:PolyLineEdge>
-          <y:Path sx="0.0" sy="0.0" tx="0.0" ty="21.0"/>
+          <y:Path sx="0.0" sy="0.0" tx="0.0" ty="21.0">
+            <y:Point x="202.5" y="243.0"/>
+            <y:Point x="202.5" y="220.5"/>
+          </y:Path>
           <y:LineStyle color="#000000" type="line" width="1.0"/>
           <y:Arrows source="none" target="standard"/>
           <y:BendStyle smoothed="false"/>

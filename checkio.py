@@ -1,14 +1,37 @@
 import re
-st = 'aa'
+st = 'aaaaa'
+#st = 'abcabcabab'
+#st = 'abababc'
 
-l1 = 1
-res = 1
-for i in range(1,len(st)):
-    if st[i]==st[i-1]:
-        l1+=1
-    else:
-        if l1>res:
-            res = l1
-            l1 = 0
+print(re.findall(r'(.+)\1\1\1\1', st))
+print(re.findall(r'(.+)\1\1\1', st))
+print(re.findall(r'(.+)\1\1', st))
+print(re.findall(r'(.+)\1', st))
 
-print(res)
+# res = ''
+# res1 = ''
+# sch = 0
+# for i in range(len(st)):
+#     if i==0:
+#         continue
+#     for j in range(len(st)-i):
+#         if len(st[j:j+i])==len(st[j+i:j+2*i]):
+#             if st[j:j+i]==st[j+i:j+2*i]:
+#                 if res=='':
+#                     res+= st[j:j+i] + st[j+i:j+2*i]
+#                     sch = 2
+#                 elif res[:i]==st[j+i:j+2*i]:
+#                     res+=st[j+i:j+2*i]
+#                     sch+=1
+#                 else:
+#                     res = ''
+#                     sch = 0
+#             print(st[j:j + i], st[j + i:j + 2 * i], res, sch)
+#         else:
+#             res = ''
+#             sch = 0
+#
+#
+#     res = ''
+#     sch = 0
+

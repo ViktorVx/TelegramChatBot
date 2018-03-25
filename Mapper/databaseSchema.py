@@ -10,7 +10,6 @@ Base = declarative_base()
 
 class User(Base):
     __tablename__ = 'user'
-
     id = Column(Integer, primary_key=True)
     first_name = Column(String)
     last_name = Column(String)
@@ -25,13 +24,11 @@ class User(Base):
         self.first_name = str(first_name)
         self.last_name = str(last_name)
 
-
     def __repr__(self):
         return self.first_name + ' ' + self.last_name
 
     def __str__(self):
         return self.first_name + ' ' + self.last_name
-
 
 
 class CircleType(enum.Enum):
@@ -41,9 +38,9 @@ class CircleType(enum.Enum):
     month_circle = 'month_circle'
     year_circle = 'year_circle'
 
+
 class Reminder(Base):
     __tablename__ = 'reminder'
-
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(ForeignKey('user.id'))
     text = Column(String)
@@ -52,9 +49,10 @@ class Reminder(Base):
     circle_type = Column(Enum(CircleType))
     circle_parameter = Column(String)
     is_complete = Column(Boolean)
+    parent_reminder_id = Column(ForeignKey('reminder.id'))
 
-
-    def __init__(self, user_id, text, date, time, circle_type=None, circle_parameter=None):
+    def __init__(self, user_id, text, date, time, circle_type=None, circle_parameter=None, \
+                 parent_reminder_id=None):
         self.user_id = user_id
         self.text = text
         self.date = date
@@ -62,11 +60,11 @@ class Reminder(Base):
         self.circle_type = circle_type
         self.circle_parameter = circle_parameter
         self.is_complete = False
+        self.parent_reminder_id = parent_reminder_id
 
 
-if __name__ == '__main__':
-    engine = create_engine("postgresql+pg8000://postgres:123@localhost/remember_me", \
-                               client_encoding='utf8')
-    Base.metadata.drop_all(engine)
-    Base.metadata.create_all(engine)
-
+db_name = 'remember_me'
+engine = create_engine("postgresql+pg8000://postgres:123@localhost/" + db_name, \
+                       client_encoding='utf8')
+# Base.metadata.drop_all(engine)
+Base.metadata.create_all(engine)
