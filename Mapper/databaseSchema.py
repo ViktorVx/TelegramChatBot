@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, Date, Time, Boolean, Enum
@@ -6,7 +8,8 @@ from sqlalchemy.orm import relationship
 import enum
 
 Base = declarative_base()
-
+#COONECTION_STRING = "postgresql+pg8000://postgres:123@localhost/remember_me"
+COONECTION_STRING = "postgresql+pg8000://SYSDBA:masterkey@localhost/remember_me"
 
 class User(Base):
     __tablename__ = 'user'
@@ -51,7 +54,7 @@ class Reminder(Base):
     is_complete = Column(Boolean)
     parent_reminder_id = Column(ForeignKey('reminder.id'))
 
-    def __init__(self, user_id, text, date, time, circle_type=None, circle_parameter=None, \
+    def __init__(self, user_id, text, date, time, circle_type=CircleType.none_circle, circle_parameter=None, \
                  parent_reminder_id=None):
         self.user_id = user_id
         self.text = text
@@ -62,9 +65,36 @@ class Reminder(Base):
         self.is_complete = False
         self.parent_reminder_id = parent_reminder_id
 
+    def __str__(self):
+        return str(self.date) + ' ' + str(self.time) + ' ' + self.text
 
-db_name = 'remember_me'
-engine = create_engine("postgresql+pg8000://postgres:123@localhost/" + db_name, \
-                       client_encoding='utf8')
-# Base.metadata.drop_all(engine)
+    def setComplete(self, is_Complete):
+        self.is_complete = is_Complete
+
+    def setText(self, text):
+        self.text = text
+
+    def setDate(self, date):
+        self.date = date
+
+    def setTime(self, time):
+        self.time = time
+
+    def calculate_next_child_reminder_date(self, old_date, circle_type):
+        if circle_type == CircleType.none_circle:
+            return old_date
+        elif circle_type == CircleType.day_circle:
+            return old_date + + datetime.timedelta(1)
+        elif circle_type == CircleType.week_circle:
+            return old_date + + datetime.timedelta(7)
+        elif circle_type == CircleType.month_circle:
+            if old_date.month == 12:
+                return old_date.replace(old_date.year + 1, 1)
+            else:
+                return old_date.replace(old_date.year, old_date.month + 1)
+        elif circle_type == CircleType.year_circle:
+            return old_date.replace(old_date.year+1)
+
+
+engine = create_engine(COONECTION_STRING, client_encoding='utf8')
 Base.metadata.create_all(engine)
