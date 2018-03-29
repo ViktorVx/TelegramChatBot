@@ -3,8 +3,8 @@ from sqlalchemy.orm import sessionmaker
 from Mapper.databaseSchema import User, Reminder, CircleType
 import datetime
 
-# COONECTION_STRING = "postgresql+pg8000://postgres:123@localhost/remember_me"
-COONECTION_STRING = "postgresql+pg8000://SYSDBA:masterkey@localhost/remember_me"
+COONECTION_STRING = "postgresql+pg8000://postgres:123@localhost/remember_me"
+#COONECTION_STRING = "postgresql+pg8000://SYSDBA:masterkey@localhost/remember_me"
 
 
 def print_menu():
@@ -13,6 +13,8 @@ def print_menu():
         print('1 - создать напоминание')
         print('2 - просмотреть напоминания на сегодня')
         print('3 - выход')
+        print('*'*20)
+        print('4 - просмотреть циклические напоминания')
         action = input('Введите номер: ')
         if action == '1':
             create_reminder_handler()
@@ -37,15 +39,16 @@ def print_menu():
                 ''')
             rem_action = int(input('Введите действие: '))
             if rem_action == 1:
-                circle_rem = session.query(Reminder).filter(Reminder.id ==
-                                                            reminder_list[rem_selected].parent_reminder_id).all()[0]
-                new_child_date = reminder_list[rem_selected].calculate_next_child_reminder_date(reminder_list[rem_selected].date,
-                                                                                                circle_rem.circle_type)
-                new_reminder = Reminder(reminder_list[rem_selected].user_id, reminder_list[rem_selected].text,
-                                        new_child_date, reminder_list[rem_selected].time,
-                                        parent_reminder_id=reminder_list[rem_selected].parent_reminder_id)
-                session.add(new_reminder)
-                session.commit()
+                if reminder_list[rem_selected].circle_type!=CircleType.none_circle:
+                    circle_rem = session.query(Reminder).filter(Reminder.id ==
+                                                                reminder_list[rem_selected].parent_reminder_id).all()[0]
+                    new_child_date = reminder_list[rem_selected].calculate_next_child_reminder_date(reminder_list[rem_selected].date,
+                                                                                                    circle_rem.circle_type)
+                    new_reminder = Reminder(reminder_list[rem_selected].user_id, reminder_list[rem_selected].text,
+                                            new_child_date, reminder_list[rem_selected].time,
+                                            parent_reminder_id=reminder_list[rem_selected].parent_reminder_id)
+                    session.add(new_reminder)
+                    session.commit()
                 # *****
                 reminder_list[rem_selected].setComplete(True)
                 session.commit()
@@ -90,6 +93,66 @@ def print_menu():
                 pass
         if action == '3':
             exit()
+        if action == '4':
+            circle_reminder_list = session.query(Reminder).filter(Reminder.user_id == user.get_id,
+                                                           Reminder.circle_type != CircleType.none_circle,
+                                                           Reminder.is_complete == False).order_by(Reminder.date).all()
+            print('*' * 100)
+            for reminder in circle_reminder_list:
+                print(str(circle_reminder_list.index(reminder) + 1) + ') ' + str(reminder))
+            print('*' * 100)
+            rem_selected = int(input('Выберите необходимое напоминание: ')) - 1
+            if rem_selected < 0 or rem_selected > len(circle_reminder_list):
+                print('Выход в меню...')
+                break
+            print('**** ' + str(circle_reminder_list[rem_selected]))
+            print('''Выберите действие с напоминанием:
+                    1 - завершить напоминание
+                    2 - редактировать напоминание
+                    3 - удалить напоминание
+                    4 - вернуться назад
+                ''')
+            rem_action = int(input('Введите действие: '))
+            if rem_action == 1:
+                child_rem_list = session.query(Reminder).filter(Reminder.parent_reminder_id == circle_reminder_list[rem_selected].id).all()
+                for child_rem in child_rem_list:
+                    child_rem.setComplete(True)
+                circle_reminder_list[rem_selected].setComplete(True)
+                session.commit()
+            elif rem_action == 2:
+                print('''Что необходимо отредактировать:
+                                    1 - тескт
+                                    2 - дату
+                                    3 - время
+                                    4 - вернуться назад
+                                ''')
+                edit_part = int(input('Что редактировать? :'))
+                if edit_part == 1:
+                    new_text = input('Введите новый текст: ')
+                    circle_reminder_list[rem_selected].setText(new_text)
+                    session.commit()
+                elif edit_part == 2:
+                    new_date = extract_date(input('Введите новую дату: '))
+                    circle_reminder_list[rem_selected].setDate(new_date)
+                    session.commit()
+                elif edit_part == 3:
+                    new_time = extract_time(input('Введите новое время: '))
+                    circle_reminder_list[rem_selected].setTime(new_time)
+                    session.commit()
+                elif edit_part == 4:
+                    break
+            elif rem_action == 3:
+                child_rem_list = session.query(Reminder).filter(
+                    Reminder.parent_reminder_id == circle_reminder_list[rem_selected].id).all()
+                for child_rem in child_rem_list:
+                    session.delete(child_rem)
+                session.commit()
+                session.delete(circle_reminder_list[rem_selected])
+                session.commit()
+            elif rem_action == 4:
+                break
+            else:
+                pass
     print_menu()
 
 

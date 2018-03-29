@@ -8,8 +8,8 @@ from sqlalchemy.orm import relationship
 import enum
 
 Base = declarative_base()
-#COONECTION_STRING = "postgresql+pg8000://postgres:123@localhost/remember_me"
-COONECTION_STRING = "postgresql+pg8000://SYSDBA:masterkey@localhost/remember_me"
+COONECTION_STRING = "postgresql+pg8000://postgres:123@localhost/remember_me"
+#COONECTION_STRING = "postgresql+pg8000://SYSDBA:masterkey@localhost/remember_me"
 
 class User(Base):
     __tablename__ = 'user'
