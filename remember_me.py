@@ -21,7 +21,9 @@ def print_menu():
         if action == '2':
             reminder_list = session.query(Reminder).filter(Reminder.user_id == user.get_id,
                                                            Reminder.circle_type == CircleType.none_circle,
-                                                           Reminder.is_complete == False).order_by(Reminder.date).all()
+                                                           Reminder.is_complete == False,
+                                                           Reminder.date <= (datetime.datetime.now().date() + datetime.timedelta(14))
+                                                           ).order_by(Reminder.date).all()
             print('*' * 100)
             for reminder in reminder_list:
                 print(str(reminder_list.index(reminder) + 1) + ') ' + str(reminder))
@@ -114,7 +116,8 @@ def print_menu():
                 ''')
             rem_action = int(input('Введите действие: '))
             if rem_action == 1:
-                child_rem_list = session.query(Reminder).filter(Reminder.parent_reminder_id == circle_reminder_list[rem_selected].id).all()
+                child_rem_list = session.query(Reminder).\
+                    filter(Reminder.parent_reminder_id == circle_reminder_list[rem_selected].id).all()
                 for child_rem in child_rem_list:
                     child_rem.setComplete(True)
                 circle_reminder_list[rem_selected].setComplete(True)
