@@ -1,3 +1,5 @@
+import requests
+from time import sleep
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from Mapper.databaseSchema import User, Reminder, CircleType
@@ -5,6 +7,7 @@ import datetime
 
 COONECTION_STRING = "postgresql+pg8000://postgres:123@localhost/remember_me"
 #COONECTION_STRING = "postgresql+pg8000://SYSDBA:masterkey@localhost/remember_me"
+API_TELEGRAM_URL = 'https://api.telegram.org/'
 VISIBLE_PERIOD = 7
 
 def print_menu():
@@ -67,7 +70,7 @@ def extract_time(tx_time):
     return datetime.time(int(tx_time[:2]), int(tx_time[2:]))
 
 
-def create_reminder_handler():
+def create_reminder_handler(user):
     tx_date = input('Введите дату напоминания: ')
     date = extract_date(tx_date)
     # **********************************************
@@ -119,7 +122,7 @@ def create_reminder_handler():
         print('Напоминание успешно создано!')
 
 
-def edit_reminder_handler(isCircle):
+def edit_reminder_handler(isCircle, user):
     if isCircle:
         reminder_list = session.query(Reminder).filter(Reminder.user_id == user.get_id,
                                                        Reminder.circle_type != CircleType.none_circle,
@@ -205,97 +208,74 @@ def edit_reminder_handler(isCircle):
         return False
     return True
 
+# API functions ********************************************************************************************************
+def get_updates_json(request):
+    response = requests.get(request + 'getUpdates')
+    return response.json()
+
+
+def get_me_json(request):
+    response = requests.get(request + 'getMe')
+    return response.json()
+
+
+def get_last_update(data):
+    results = data['result']
+    total_updates = len(results) - 1
+    return results[total_updates]
+
+
+def send_mess(chat, text):
+    params = {'chat_id': chat, 'text': text}
+    response = requests.post(API_TELEGRAM_URL + 'sendMessage', data=params)
+    return response
+
+# API functions ********************************************************************************************************
 
 if __name__ == '__main__':
     engine = create_engine(COONECTION_STRING, client_encoding='utf8')
     Session = sessionmaker(bind=engine)
     session = Session()
+    #****
+    ch = 0
+    mess_id = 0
+    while ch<100:
+        data = get_last_update(get_updates_json(API_TELEGRAM_URL))
+        if mess_id!= data['message']['message_id']:
+            text = str(data['message']['from']['id']) + ' ' + data['message']['from']['first_name'] + ' ' + \
+                   data['message']['from']['last_name'] + ' : ' + data['message']['text']
+            print(text)
+            mess_id = data['message']['message_id']
+            send_mess(chat=data['message']['chat']['id'], text=text)
+            if len(session.query(User).filter(User.user_id==127155577).all())==0:
+                user = User(data['message']['from']['id'], data['message']['from']['first_name'], data['message']['from']['last_name'])
+                session.add(user)
+                session.commit()
+
+        sleep(3)
+        ch+=1
     # ------------------------------------------------------------------------------------------------------------------
-    print("Начинается работа чат-бота")
-    print('*' * 100)
-    # -------------------------------------------------------------------------------------------------------------------
-    user_id = ''
-    while user_id == '':
-        try:
-            user_id = int(input('Веедите Ваш id: '))
-        except:
-            user_id = ''
+    # print("Начинается работа чат-бота")
+    # print('*' * 100)
+    # # -------------------------------------------------------------------------------------------------------------------
+    # user_id = ''
+    # while user_id == '':
+    #     try:
+    #         user_id = int(input('Веедите Ваш id: '))
+    #     except:
+    #         user_id = ''
+    #
+    # if len(session.query(User).filter(User.id == user_id).all()) == 0:
+    #     first_name = input('Введите first_name: ')
+    #     last_name = input('Введите last_name: ')
+    #     user = User(user_id, first_name, last_name)
+    #     session.add(user)
+    #     session.commit()
+    # else:
+    #     user = session.query(User).filter(User.id == user_id).all()[0]
+    #     print('Вы вошли как: ' + str(user))
+    # # -------------------------------------------------------------------------------------------------------------------
+    # print('*' * 100)
+    # # -------------------------------------------------------------------------------------------------------------------
+    # print_menu()
 
-    if len(session.query(User).filter(User.id == user_id).all()) == 0:
-        first_name = input('Введите first_name: ')
-        last_name = input('Введите last_name: ')
-        user = User(user_id, first_name, last_name)
-        session.add(user)
-        session.commit()
-    else:
-        user = session.query(User).filter(User.id == user_id).all()[0]
-        print('Вы вошли как: ' + str(user))
-    # -------------------------------------------------------------------------------------------------------------------
-    print('*' * 100)
-    # -------------------------------------------------------------------------------------------------------------------
-    print_menu()
-
-
-    # import requests
-    # from time import sleep
-    # from sqlalchemy import create_engine
-    # from sqlalchemy.orm import sessionmaker
-    # #from entities.User import User
-    #
-    # url = 'https://api.telegram.org/'
-    #
-    #
-    # def get_updates_json(request):
-    #     response = requests.get(request + 'getUpdates')
-    #     return response.json()
-    #
-    #
-    # def get_me_json(request):
-    #     response = requests.get(request + 'getMe')
-    #     return response.json()
-    #
-    #
-    # def get_last_update(data):
-    #     results = data['result']
-    #     total_updates = len(results) - 1
-    #     return results[total_updates]
-    #
-    #
-    # def send_mess(chat, text):
-    #     params = {'chat_id': chat, 'text': text}
-    #     response = requests.post(url + 'sendMessage', data=params)
-    #     return response
-    #
-    # def main():
-    #     #print(get_me_json(url))
-    #     #print('*' * 100)#---------------------------------------------------------------------------------------------------
-    #     # for elem in get_updates_json(url)['result']:
-    #     #     print(elem)
-    #     #print('*' * 100)#---------------------------------------------------------------------------------------------------
-    #     ch = 0
-    #     mess_id = 0
-    #     # ---------------------------------------------------------------------------------------------------
-    #     engine = create_engine("postgresql+pg8000://postgres:123@localhost/remember_me", \
-    #                            client_encoding='utf8')
-    #     Session = sessionmaker(bind=engine)
-    #     session = Session()
-    #     # ---------------------------------------------------------------------------------------------------
-    #     while ch<100:
-    #         data = get_last_update(get_updates_json(url))
-    #         if mess_id!= data['message']['message_id']:
-    #             text = str(data['message']['from']['id']) + ' ' + data['message']['from']['first_name'] + ' ' + \
-    #                   data['message']['from']['last_name'] + ' : ' + data['message']['text']
-    #             print(text)
-    #             mess_id = data['message']['message_id']
-    #             send_mess(chat=data['message']['chat']['id'], text=text)
-    #             if len(session.query(User).filter(User.user_id==127155577).all())==0:
-    #                 user = User(data['message']['from']['id'], data['message']['from']['first_name'], data['message']['from']['last_name'])
-    #                 session.add(user)
-    #                 session.commit()
-    #
-    #         sleep(3)
-    #         ch+=1
-    #
-    #
-    # if __name__ == '__main__':
-    #    main()
