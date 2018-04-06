@@ -7,10 +7,8 @@ import datetime
 import os
 
 COONECTION_STRING = "postgresql+pg8000://postgres:123@localhost/remember_me"
-#COONECTION_STRING = "postgresql+pg8000://SYSDBA:masterkey@localhost/remember_me"
-#API_TELEGRAM_URL = 'https://api.telegram.org/'
+# COONECTION_STRING = "postgresql+pg8000://SYSDBA:masterkey@localhost/remember_me"
 VISIBLE_PERIOD = 7
-#TELEGRAM_TOKEN = open(os.getcwd().join(r'\tokens\telegram_token.txt')).read()
 
 
 def print_menu():
@@ -19,7 +17,7 @@ def print_menu():
         print('1 - создать напоминание')
         print('2 - просмотреть напоминания на сегодня')
         print('3 - выход')
-        print('*'*20)
+        print('*' * 20)
         print('4 - просмотреть циклические напоминания')
         action = input('Введите номер: ')
         if action == '1':
@@ -135,7 +133,8 @@ def edit_reminder_handler(isCircle, user):
                                                        Reminder.circle_type == CircleType.none_circle,
                                                        Reminder.is_complete == False,
                                                        Reminder.date <= (
-                                                       datetime.datetime.now().date() + datetime.timedelta(VISIBLE_PERIOD))
+                                                           datetime.datetime.now().date() + datetime.timedelta(
+                                                               VISIBLE_PERIOD))
                                                        ).order_by(Reminder.date).all()
     print('*' * 100)
     for reminder in reminder_list:
@@ -211,9 +210,11 @@ def edit_reminder_handler(isCircle, user):
         return False
     return True
 
+
 # API functions ********************************************************************************************************
-def get_updates_json(request):
-    response = requests.get(request + 'getUpdates')
+def get_updates_json(request, offset=0):
+    params = {'offset': offset}
+    response = requests.get(request + 'getUpdates', data=params)
     return response.json()
 
 
@@ -225,7 +226,7 @@ def get_me_json(request):
 def get_last_update(data):
     results = data['result']
     total_updates = len(results) - 1
-    if total_updates==-1:
+    if total_updates == -1:
         return ''
     else:
         return results[total_updates]
@@ -236,6 +237,12 @@ def send_mess(chat, text):
     response = requests.post(API_TELEGRAM_URL + 'sendMessage', data=params)
     return response
 
+
+def get_state():
+    response = requests.post(API_TELEGRAM_URL + 'getState')
+    return response
+
+
 # API functions ********************************************************************************************************
 
 if __name__ == '__main__':
@@ -245,50 +252,60 @@ if __name__ == '__main__':
     engine = create_engine(COONECTION_STRING, client_encoding='utf8')
     Session = sessionmaker(bind=engine)
     session = Session()
-    #****
-    ch = 0
-    mess_id = 0
-    while ch<100:
-        data = get_last_update(get_updates_json(API_TELEGRAM_URL))
-        if mess_id!= data['message']['message_id']:
-            text = str(data['message']['from']['id']) + ' ' + data['message']['from']['first_name'] + ' ' + \
-                   data['message']['from']['last_name'] + ' : ' + data['message']['text']
-            print(text)
-            mess_id = data['message']['message_id']
-            send_mess(chat=data['message']['chat']['id'], text=text)
-            telegram_user_id = int(data['message']['from']['id'])
-            print(telegram_user_id)
-            # if len(session.query(User).filter(User.user_id==127155577).all())==0:
-            #     user = User(data['message']['from']['id'], data['message']['from']['first_name'], data['message']['from']['last_name'])
-            #     session.add(user)
-            #     session.commit()
-        sleep(3)
-        ch+=1
+    # ****
+    # ch = 0
+    # mess_id = 0
+    last_message = 0
+    while True:
+        updates = get_updates_json(API_TELEGRAM_URL, last_message)
+        for message in updates['result']:
+            # todo здесь вставить обработку команд
+            print(message)
+            last_message = message['update_id']+1
+            print(last_message)
+        # updates = get_updates_json(API_TELEGRAM_URL)
+        # data = get_last_update(updates)
+        # if mess_id != data['message']['message_id']:
+        #     # text = str(data['message']['from']['id']) + ' ' + data['message']['from']['first_name'] + ' ' + \
+        #     #       data['message']['from']['last_name'] + ' : ' + data['message']['text']
+        #     # print(text)
+        #     # mess_id = data['message']['message_id']
+        #     # send_mess(chat=data['message']['chat']['id'], text=text)
+        #     telegram_user_id = int(data['message']['from']['id'])
+        #     if len(session.query(User).filter(User.telegram_user_id == telegram_user_id).all()) == 0:
+        #         user = User(data['message']['from']['first_name'], data['message']['from']['last_name'],
+        #                     telegram_user_id)
+        #         session.add(user)
+        #         session.commit()
+        #     else:
+        #         user = session.query(User).filter(User.telegram_user_id == telegram_user_id).all()[0]
+        #         print(user)
+        #sleep(3)
+        # ch += 1
 
-    #127155577
-    #todo создать колонку в БД для хранения telegram_id
-    # ------------------------------------------------------------------------------------------------------------------
-    # print("Начинается работа чат-бота")
-    # print('*' * 100)
-    # # -------------------------------------------------------------------------------------------------------------------
-    # user_id = ''
-    # while user_id == '':
-    #     try:
-    #         user_id = int(input('Веедите Ваш id: '))
-    #     except:
-    #         user_id = ''
-    #
-    # if len(session.query(User).filter(User.id == user_id).all()) == 0:
-    #     first_name = input('Введите first_name: ')
-    #     last_name = input('Введите last_name: ')
-    #     user = User(user_id, first_name, last_name)
-    #     session.add(user)
-    #     session.commit()
-    # else:
-    #     user = session.query(User).filter(User.id == user_id).all()[0]
-    #     print('Вы вошли как: ' + str(user))
-    # # -------------------------------------------------------------------------------------------------------------------
-    # print('*' * 100)
-    # # -------------------------------------------------------------------------------------------------------------------
-    # print_menu()
-
+        # 127155577
+        # todo создать колонку в БД для хранения telegram_id
+        # ------------------------------------------------------------------------------------------------------------------
+        # print("Начинается работа чат-бота")
+        # print('*' * 100)
+        # # -------------------------------------------------------------------------------------------------------------------
+        # user_id = ''
+        # while user_id == '':
+        #     try:
+        #         user_id = int(input('Веедите Ваш id: '))
+        #     except:
+        #         user_id = ''
+        #
+        # if len(session.query(User).filter(User.id == user_id).all()) == 0:
+        #     first_name = input('Введите first_name: ')
+        #     last_name = input('Введите last_name: ')
+        #     user = User(user_id, first_name, last_name)
+        #     session.add(user)
+        #     session.commit()
+        # else:
+        #     user = session.query(User).filter(User.id == user_id).all()[0]
+        #     print('Вы вошли как: ' + str(user))
+        # # -------------------------------------------------------------------------------------------------------------------
+        # print('*' * 100)
+        # # -------------------------------------------------------------------------------------------------------------------
+        # print_menu()

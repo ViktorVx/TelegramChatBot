@@ -18,7 +18,7 @@
       <data key="d4"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="105.0" width="171.0" x="-48.0" y="147.0"/>
+          <y:Geometry height="141.0" width="171.0" x="-48.0" y="147.0"/>
           <y:Fill color="#CCFFCC" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="32.9072265625" x="69.04638671875" y="3.0">User<y:LabelModel>
@@ -32,6 +32,7 @@
             <y:AttributeLabel>user_id : integer
 first_name : string
 last_name : string
+telegram_user_id : integer
 </y:AttributeLabel>
             <y:MethodLabel/>
           </y:UML>
@@ -97,9 +98,9 @@ year - год
     <edge id="e0" source="n1" target="n0">
       <data key="d10">
         <y:PolyLineEdge>
-          <y:Path sx="0.0" sy="0.0" tx="0.0" ty="21.0">
+          <y:Path sx="0.0" sy="0.0" tx="0.0" ty="28.19999999999999">
             <y:Point x="202.5" y="243.0"/>
-            <y:Point x="202.5" y="220.5"/>
+            <y:Point x="202.5" y="245.7"/>
           </y:Path>
           <y:LineStyle color="#000000" type="line" width="1.0"/>
           <y:Arrows source="none" target="standard"/>

@@ -13,19 +13,20 @@ COONECTION_STRING = "postgresql+pg8000://postgres:123@localhost/remember_me"
 
 class User(Base):
     __tablename__ = 'user'
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     first_name = Column(String)
     last_name = Column(String)
     reminders = relationship("Reminder", backref="user")
+    telegram_user_id = Column(Integer, unique=True)
 
     @property
     def get_id(self):
         return self.id
 
-    def __init__(self, user_id, first_name, last_name):
-        self.id = int(user_id)
+    def __init__(self, first_name, last_name, telegram_user_id):
         self.first_name = str(first_name)
         self.last_name = str(last_name)
+        self.telegram_user_id = telegram_user_id
 
     def __repr__(self):
         return self.first_name + ' ' + self.last_name
