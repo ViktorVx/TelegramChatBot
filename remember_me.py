@@ -212,9 +212,8 @@ def edit_reminder_handler(isCircle, user):
 
 
 # API functions ********************************************************************************************************
-def get_updates_json(request, offset=0):
-    params = {'offset': offset}
-    response = requests.get(request + 'getUpdates', data=params)
+def get_updates_json(request):
+    response = requests.get(request + 'getUpdates')
     return response.json()
 
 
@@ -255,57 +254,78 @@ if __name__ == '__main__':
     # ****
     # ch = 0
     # mess_id = 0
-    last_message = 0
     while True:
-        updates = get_updates_json(API_TELEGRAM_URL, last_message)
+        updates = get_updates_json(API_TELEGRAM_URL)
         for message in updates['result']:
             # todo здесь вставить обработку команд
-            print(message)
-            last_message = message['update_id']+1
-            print(last_message)
-        # updates = get_updates_json(API_TELEGRAM_URL)
-        # data = get_last_update(updates)
-        # if mess_id != data['message']['message_id']:
-        #     # text = str(data['message']['from']['id']) + ' ' + data['message']['from']['first_name'] + ' ' + \
-        #     #       data['message']['from']['last_name'] + ' : ' + data['message']['text']
-        #     # print(text)
-        #     # mess_id = data['message']['message_id']
-        #     # send_mess(chat=data['message']['chat']['id'], text=text)
-        #     telegram_user_id = int(data['message']['from']['id'])
-        #     if len(session.query(User).filter(User.telegram_user_id == telegram_user_id).all()) == 0:
-        #         user = User(data['message']['from']['first_name'], data['message']['from']['last_name'],
-        #                     telegram_user_id)
-        #         session.add(user)
-        #         session.commit()
-        #     else:
-        #         user = session.query(User).filter(User.telegram_user_id == telegram_user_id).all()[0]
-        #         print(user)
-        #sleep(3)
-        # ch += 1
+            # print(message)
+            # text = str(message['message']['from']['id']) + ' ' + message['message']['from']['first_name'] + ' ' + \
+            #        message['message']['from']['last_name'] + ' : ' + message['message']['text']
+            # send_mess(chat=message['message']['chat']['id'], text=text)
+            # last_message = message['update_id'] + 1
+            # print(last_message)
+            telegram_user_id = int(message['message']['from']['id'])
+            user_search = session.query(User).filter(User.telegram_user_id == telegram_user_id).all()
+            if len(user_search) == 0:
+                user = User(message['message']['from']['first_name'], message['message']['from']['last_name'], telegram_user_id)
+                send_mess(chat=message['message']['chat']['id'], text='Вы - новый пользователь')
+                user.set_update_id(int(message['message']['message_id']))
+                session.add(user)
+                session.commit()
+            else:
+                user = user_search[0]
+                if user.get_update_id<int(message['message']['message_id']):
+                    send_mess(chat=message['message']['chat']['id'], text='Пока я тебя не понимаю, ' + str(user) + '!')
+                    user.set_update_id(int(message['message']['message_id']))
+                    session.add(user)
+                    session.commit()
 
-        # 127155577
-        # todo создать колонку в БД для хранения telegram_id
-        # ------------------------------------------------------------------------------------------------------------------
-        # print("Начинается работа чат-бота")
-        # print('*' * 100)
-        # # -------------------------------------------------------------------------------------------------------------------
-        # user_id = ''
-        # while user_id == '':
-        #     try:
-        #         user_id = int(input('Веедите Ваш id: '))
-        #     except:
-        #         user_id = ''
-        #
-        # if len(session.query(User).filter(User.id == user_id).all()) == 0:
-        #     first_name = input('Введите first_name: ')
-        #     last_name = input('Введите last_name: ')
-        #     user = User(user_id, first_name, last_name)
-        #     session.add(user)
-        #     session.commit()
-        # else:
-        #     user = session.query(User).filter(User.id == user_id).all()[0]
-        #     print('Вы вошли как: ' + str(user))
-        # # -------------------------------------------------------------------------------------------------------------------
-        # print('*' * 100)
-        # # -------------------------------------------------------------------------------------------------------------------
-        # print_menu()
+
+
+
+            # ----------------------------------------------------------------------------------------------------------
+            # updates = get_updates_json(API_TELEGRAM_URL)
+            # data = get_last_update(updates)
+            # if mess_id != data['message']['message_id']:
+            #     # text = str(data['message']['from']['id']) + ' ' + data['message']['from']['first_name'] + ' ' + \
+            #     #       data['message']['from']['last_name'] + ' : ' + data['message']['text']
+            #     # print(text)
+            #     # mess_id = data['message']['message_id']
+            #     # send_mess(chat=data['message']['chat']['id'], text=text)
+            #     telegram_user_id = int(data['message']['from']['id'])
+            #     if len(session.query(User).filter(User.telegram_user_id == telegram_user_id).all()) == 0:
+            #         user = User(data['message']['from']['first_name'], data['message']['from']['last_name'],
+            #                     telegram_user_id)
+            #         session.add(user)
+            #         session.commit()
+            #     else:
+            #         user = session.query(User).filter(User.telegram_user_id == telegram_user_id).all()[0]
+            #         print(user)
+            # sleep(3)
+            # ch += 1
+
+            # 127155577
+            # ------------------------------------------------------------------------------------------------------------------
+            # print("Начинается работа чат-бота")
+            # print('*' * 100)
+            # # -------------------------------------------------------------------------------------------------------------------
+            # user_id = ''
+            # while user_id == '':
+            #     try:
+            #         user_id = int(input('Веедите Ваш id: '))
+            #     except:
+            #         user_id = ''
+            #
+            # if len(session.query(User).filter(User.id == user_id).all()) == 0:
+            #     first_name = input('Введите first_name: ')
+            #     last_name = input('Введите last_name: ')
+            #     user = User(user_id, first_name, last_name)
+            #     session.add(user)
+            #     session.commit()
+            # else:
+            #     user = session.query(User).filter(User.id == user_id).all()[0]
+            #     print('Вы вошли как: ' + str(user))
+            # # -------------------------------------------------------------------------------------------------------------------
+            # print('*' * 100)
+            # # -------------------------------------------------------------------------------------------------------------------
+            # print_menu()

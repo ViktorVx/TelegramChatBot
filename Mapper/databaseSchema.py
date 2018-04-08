@@ -18,10 +18,18 @@ class User(Base):
     last_name = Column(String)
     reminders = relationship("Reminder", backref="user")
     telegram_user_id = Column(Integer, unique=True)
+    update_id = Column(Integer)
 
     @property
     def get_id(self):
         return self.id
+
+    @property
+    def get_update_id(self):
+        return int(self.update_id) if self.update_id!=None else 0
+
+    def set_update_id(self, update_id):
+        self.update_id = int(update_id)
 
     def __init__(self, first_name, last_name, telegram_user_id):
         self.first_name = str(first_name)
