@@ -5,32 +5,55 @@ from sqlalchemy.orm import sessionmaker
 from Mapper.databaseSchema import User, Reminder, CircleType
 import datetime
 import os
+import json
 
 COONECTION_STRING = "postgresql+pg8000://postgres:123@localhost/remember_me"
 # COONECTION_STRING = "postgresql+pg8000://SYSDBA:masterkey@localhost/remember_me"
 VISIBLE_PERIOD = 7
+# ***
+CREATE_REMINDER = 'create_reminder'
+VIEW_REMINDERS = 'view_reminders'
+VIEW_CIRCLE_REMINDERS = 'view_circle_reminders'
 
+CIRCLE_REMINDER_TYPE = 'circle_reminder_type'
+NON_CIRCLE_REMINDER_TYPE = 'non_circle_reminder_type'
 
-def print_menu():
-    while True:
-        print("Выберите действие:")
-        print('1 - создать напоминание')
-        print('2 - просмотреть напоминания на сегодня')
-        print('3 - выход')
-        print('*' * 20)
-        print('4 - просмотреть циклические напоминания')
-        action = input('Введите номер: ')
-        if action == '1':
-            create_reminder_handler()
-        if action == '2':
-            if not edit_reminder_handler(False):
-                break
-        if action == '3':
-            exit()
-        if action == '4':
-            if not edit_reminder_handler(True):
-                break
-    print_menu()
+DAY_CIRCLE = 'day_circle'
+WEEK_CIRCLE = 'week_circle'
+MONTH_CIRCLE = 'month_circle'
+YEAR_CIRCLE = 'year_circle'
+# ***
+REMINDER_CREATION_STEP = 0  # 0 - процесс создания напоминания не активирован
+                            # 1 - затребование даты напоминания
+                            # 2 - введение даты напоминания
+                            # 3 - затребование времени напоминания
+                            # 4 - введение времени напоминания
+
+REM_DATE = ''
+REM_TIME = ''
+REM_TEXT = ''
+REM_CIRCLE = False
+REM_CIRCLE_TYPE = ''
+# def print_menu():
+#     while True:
+#         print("Выберите действие:")
+#         print('1 - создать напоминание')
+#         print('2 - просмотреть напоминания на сегодня')
+#         print('3 - выход')
+#         print('*' * 20)
+#         print('4 - просмотреть циклические напоминания')
+#         action = input('Введите номер: ')
+#         if action == '1':
+#             create_reminder_handler()
+#         if action == '2':
+#             if not edit_reminder_handler(False):
+#                 break
+#         if action == '3':
+#             exit()
+#         if action == '4':
+#             if not edit_reminder_handler(True):
+#                 break
+#     print_menu()
 
 
 def create_reminder(session, user, date, time, text, circle_type=None, circle_parameter=None):
@@ -71,56 +94,56 @@ def extract_time(tx_time):
     return datetime.time(int(tx_time[:2]), int(tx_time[2:]))
 
 
-def create_reminder_handler(user):
-    tx_date = input('Введите дату напоминания: ')
-    date = extract_date(tx_date)
-    # **********************************************
-    tx_time = input('Введите время напоминания: ')
-    time = extract_time(tx_time)
-    # **********************************************
-    text = input('Введите текст напоминания: ')
-    # **********************************************
-    print('''Напоминание циклическое? 
-                1 - Да 
-                2 - Нет''')
-    tx_is_circle = input()
-    if tx_is_circle == '1':
-        print('''С какой цикличностью?
-                    1 - День
-                    2 - Неделя
-                    3 - Месяц
-                    4 - Год''')
-        tx_circle_type = input()
-        if tx_circle_type == '1':
-            circle_type = CircleType.day_circle
-            circle_parameter = str(extract_time(tx_time))
-        elif tx_circle_type == '2':
-            print('''Введите день недели повтора: 
-                        1 - Каждый понедельник
-                        2 - Каждый вторник
-                        3 - Каждую среду
-                        4 - Каждый четверг
-                        5 - Каждую пятницу
-                        6 - Каждую субботу
-                        7 - Каждое воскресенье''')
-            circle_week_day = input()
-            circle_type = CircleType.week_circle
-            circle_parameter = str(circle_week_day)
-        elif tx_circle_type == '3':
-            circle_month_day = input('Введите число месяца повтора: ')
-            circle_type = CircleType.month_circle
-            circle_parameter = str(circle_month_day)
-        elif tx_circle_type == '4':
-            circle_year_day = input('Введите число и месяц повтора: ')
-            circle_type = CircleType.year_circle
-            circle_parameter = str(circle_year_day)
-
-    else:
-        circle_type = CircleType.none_circle
-        circle_parameter = ''
-    # **********************************************
-    if create_reminder(session, user, date, time, text, circle_type, circle_parameter) == 1:
-        print('Напоминание успешно создано!')
+# def create_reminder_handler(user):
+#     tx_date = input('Введите дату напоминания: ')
+#     date = extract_date(tx_date)
+#     # **********************************************
+#     tx_time = input('Введите время напоминания: ')
+#     time = extract_time(tx_time)
+#     # **********************************************
+#     text = input('Введите текст напоминания: ')
+#     # **********************************************
+#     print('''Напоминание циклическое?
+#                 1 - Да
+#                 2 - Нет''')
+#     tx_is_circle = input()
+#     if tx_is_circle == '1':
+#         print('''С какой цикличностью?
+#                     1 - День
+#                     2 - Неделя
+#                     3 - Месяц
+#                     4 - Год''')
+#         tx_circle_type = input()
+#         if tx_circle_type == '1':
+#             circle_type = CircleType.day_circle
+#             circle_parameter = str(extract_time(tx_time))
+#         elif tx_circle_type == '2':
+#             print('''Введите день недели повтора:
+#                         1 - Каждый понедельник
+#                         2 - Каждый вторник
+#                         3 - Каждую среду
+#                         4 - Каждый четверг
+#                         5 - Каждую пятницу
+#                         6 - Каждую субботу
+#                         7 - Каждое воскресенье''')
+#             circle_week_day = input()
+#             circle_type = CircleType.week_circle
+#             circle_parameter = str(circle_week_day)
+#         elif tx_circle_type == '3':
+#             circle_month_day = input('Введите число месяца повтора: ')
+#             circle_type = CircleType.month_circle
+#             circle_parameter = str(circle_month_day)
+#         elif tx_circle_type == '4':
+#             circle_year_day = input('Введите число и месяц повтора: ')
+#             circle_type = CircleType.year_circle
+#             circle_parameter = str(circle_year_day)
+#
+#     else:
+#         circle_type = CircleType.none_circle
+#         circle_parameter = ''
+#     # **********************************************
+#     if create_reminder(session, user, date, time, text, circle_type, circle_parameter) == 1:
+#         print('Напоминание успешно создано!')
 
 
 def edit_reminder_handler(isCircle, user):
@@ -212,6 +235,7 @@ def edit_reminder_handler(isCircle, user):
 
 
 # API functions ********************************************************************************************************
+
 def get_updates_json(request):
     response = requests.get(request + 'getUpdates')
     return response.json()
@@ -231,18 +255,193 @@ def get_last_update(data):
         return results[total_updates]
 
 
-def send_mess(chat, text):
-    params = {'chat_id': chat, 'text': text}
-    response = requests.post(API_TELEGRAM_URL + 'sendMessage', data=params)
-    return response
-
-
 def get_state():
     response = requests.post(API_TELEGRAM_URL + 'getState')
     return response
 
 
+# **********************************************************************************************************************
+def send_message(chat, text):
+    params = {'chat_id': chat, 'text': text, 'parse_mode': 'HTML'}
+    response = requests.post(API_TELEGRAM_URL + 'sendMessage', data=params)
+    return response
+
+
+# def send_inline_keyboard(chat_id, text):
+#     reply = json.dumps({'inline_keyboard': [[{'text': 'Строка1', 'callback_data': 'str1'}], [{'text': 'Строка2', 'callback_data': 'str2'}]]})
+#     params = {'chat_id': chat_id, 'text': 'Перейти на страничку автора', 'reply_markup': reply}
+#     response = requests.post(API_TELEGRAM_URL + 'sendMessage', data=params)
+#     return response
+
+
 # API functions ********************************************************************************************************
+# Telegram Handler functions *******************************************************************************************
+def callback_quary_handler(session, message):
+    global REMINDER_CREATION_STEP
+    global REM_CIRCLE, REM_CIRCLE_TYPE
+    user = user_entry(session, message)
+    if user.get_update_id < int(message['callback_query']['message']['message_id']):
+        callback_data = message['callback_query']['data']
+        if callback_data==CREATE_REMINDER:
+            create_reminder_handler(message['callback_query']['message']['chat']['id'])
+        elif callback_data==VIEW_REMINDERS:
+            pass
+        elif callback_data==VIEW_CIRCLE_REMINDERS:
+            pass
+        elif callback_data==CIRCLE_REMINDER_TYPE:
+            REM_CIRCLE = True
+            REMINDER_CREATION_STEP = 8
+            create_reminder_handler(message['callback_query']['message']['chat']['id'])
+        elif callback_data==NON_CIRCLE_REMINDER_TYPE:
+            REM_CIRCLE = False
+            REMINDER_CREATION_STEP = 8
+            create_reminder_handler(message['callback_query']['message']['chat']['id'])
+        elif callback_data in [DAY_CIRCLE, WEEK_CIRCLE, MONTH_CIRCLE, YEAR_CIRCLE]:
+            REM_CIRCLE_TYPE = callback_data
+            REMINDER_CREATION_STEP = 9
+            create_reminder_handler(message['callback_query']['message']['chat']['id'])
+        else:
+            pass
+        remember_message_id(session, user, message['callback_query']['message']['message_id'])
+
+
+def message_handler(session, message):
+    global REMINDER_CREATION_STEP
+    global REM_DATE, REM_TIME, REM_TEXT
+    user = user_entry(session, message)
+    if user.get_update_id < int(message['message']['message_id']):
+        if REMINDER_CREATION_STEP==1:
+            REM_DATE = message['message']['text']
+            REMINDER_CREATION_STEP = 2
+            create_reminder_handler(message['message']['chat']['id'])
+        elif REMINDER_CREATION_STEP==3:
+            REM_TIME = message['message']['text']
+            REMINDER_CREATION_STEP = 4
+            create_reminder_handler(message['message']['chat']['id'])
+        elif REMINDER_CREATION_STEP==5:
+            REM_TEXT = message['message']['text']
+            REMINDER_CREATION_STEP = 6
+            create_reminder_handler(message['message']['chat']['id'])
+        else:
+            print_telegram_menu(message['message']['chat']['id'])
+        remember_message_id(session, user, message['message']['message_id'])
+
+
+
+def create_reminder_handler(chat_id):
+    global REMINDER_CREATION_STEP
+    if REMINDER_CREATION_STEP == 0:
+        send_message(chat_id, 'Введите дату напоминания:')
+        REMINDER_CREATION_STEP = 1
+    elif REMINDER_CREATION_STEP == 2:
+        send_message(chat_id, 'Введите время напоминания:')
+        REMINDER_CREATION_STEP = 3
+    elif REMINDER_CREATION_STEP ==4:
+        send_message(chat_id, 'Введите текст напоминания:')
+        REMINDER_CREATION_STEP = 5
+    elif REMINDER_CREATION_STEP == 6:
+        is_reminder_circle_selection(chat_id)
+        REMINDER_CREATION_STEP = 7
+    elif REMINDER_CREATION_STEP ==8:
+        pass
+    # tx_date = input('Введите дату напоминания: ')
+    # date = extract_date(tx_date)
+    # # **********************************************
+    # tx_time = input('Введите время напоминания: ')
+    # time = extract_time(tx_time)
+    # # **********************************************
+    # text = input('Введите текст напоминания: ')
+    # # **********************************************
+    # print('''Напоминание циклическое?
+    #             1 - Да
+    #             2 - Нет''')
+    # tx_is_circle = input()
+    # if tx_is_circle == '1':
+    #     print('''С какой цикличностью?
+    #                 1 - День
+    #                 2 - Неделя
+    #                 3 - Месяц
+    #                 4 - Год''')
+    #     tx_circle_type = input()
+    #     if tx_circle_type == '1':
+    #         circle_type = CircleType.day_circle
+    #         circle_parameter = str(extract_time(tx_time))
+    #     elif tx_circle_type == '2':
+    #         print('''Введите день недели повтора:
+    #                     1 - Каждый понедельник
+    #                     2 - Каждый вторник
+    #                     3 - Каждую среду
+    #                     4 - Каждый четверг
+    #                     5 - Каждую пятницу
+    #                     6 - Каждую субботу
+    #                     7 - Каждое воскресенье''')
+    #         circle_week_day = input()
+    #         circle_type = CircleType.week_circle
+    #         circle_parameter = str(circle_week_day)
+    #     elif tx_circle_type == '3':
+    #         circle_month_day = input('Введите число месяца повтора: ')
+    #         circle_type = CircleType.month_circle
+    #         circle_parameter = str(circle_month_day)
+    #     elif tx_circle_type == '4':
+    #         circle_year_day = input('Введите число и месяц повтора: ')
+    #         circle_type = CircleType.year_circle
+    #         circle_parameter = str(circle_year_day)
+    #
+    # else:
+    #     circle_type = CircleType.none_circle
+    #     circle_parameter = ''
+    # # **********************************************
+    # if create_reminder(session, user, date, time, text, circle_type, circle_parameter) == 1:
+    #     print('Напоминание успешно создано!')
+
+
+def remember_message_id(session, user, id):
+    user.set_update_id(int(id))
+    session.add(user)
+    session.commit()
+
+# ****************************************
+def circle_period_selection(chat_id):
+    reply = json.dumps({'inline_keyboard': [[{'text': 'День', 'callback_data': DAY_CIRCLE}],
+                                            [{'text': 'Неделя', 'callback_data': WEEK_CIRCLE}],
+                                            [{'text': 'Месяц', 'callback_data': MONTH_CIRCLE}],
+                                            [{'text': 'Год', 'callback_data': YEAR_CIRCLE}]]})
+    params = {'chat_id': chat_id, 'text': 'С какой периодичностью?', 'reply_markup': reply}
+    requests.post(API_TELEGRAM_URL + 'sendMessage', data=params)
+
+def print_telegram_menu(chat_id):
+    reply = json.dumps({'inline_keyboard': [[{'text': 'Создать напоминание', 'callback_data': CREATE_REMINDER}],
+                                            [{'text': 'Просмотреть напоминания', 'callback_data': VIEW_REMINDERS}],
+                                            [{'text': 'Просмотреть циклические напоминания',
+                                              'callback_data': VIEW_CIRCLE_REMINDERS}]]})
+    params = {'chat_id': chat_id, 'text': 'Выберите действие:', 'reply_markup': reply}
+    requests.post(API_TELEGRAM_URL + 'sendMessage', data=params)
+
+def is_reminder_circle_selection(chat_id):
+    reply = json.dumps({'inline_keyboard': [[{'text': 'ДА', 'callback_data': CIRCLE_REMINDER_TYPE}],
+                                            [{'text': 'Нет', 'callback_data': NON_CIRCLE_REMINDER_TYPE}],
+                                            ]})
+    params = {'chat_id': chat_id, 'text': 'Напомиание будет циклическим?', 'reply_markup': reply}
+    requests.post(API_TELEGRAM_URL + 'sendMessage', data=params)
+
+# ****************************************
+def user_entry(session, message):
+    if 'callback_query' in message.keys():
+        telegram_user_id = int(message['callback_query']['from']['id'])
+    else:
+        telegram_user_id = int(message['message']['from']['id'])
+
+    user_search = session.query(User).filter(User.telegram_user_id == telegram_user_id).all()
+    if len(user_search) == 0:
+        user = User(message['message']['from']['first_name'], message['message']['from']['last_name'],
+                    telegram_user_id)
+        send_message(chat=message['message']['chat']['id'], text='Вы - новый пользователь')
+        return user
+    else:
+        return user_search[0]
+
+
+# Telegram Handler functions *******************************************************************************************
 
 if __name__ == '__main__':
     TELEGRAM_TOKEN = open(os.getcwd() + r'\tokens\telegram_token.txt', 'r').read()
@@ -252,80 +451,66 @@ if __name__ == '__main__':
     Session = sessionmaker(bind=engine)
     session = Session()
     # ****
-    # ch = 0
-    # mess_id = 0
+    # ****
     while True:
-        updates = get_updates_json(API_TELEGRAM_URL)
+        try:
+            updates = get_updates_json(API_TELEGRAM_URL)
+        except:
+            continue
         for message in updates['result']:
             # todo здесь вставить обработку команд
-            # print(message)
-            # text = str(message['message']['from']['id']) + ' ' + message['message']['from']['first_name'] + ' ' + \
-            #        message['message']['from']['last_name'] + ' : ' + message['message']['text']
-            # send_mess(chat=message['message']['chat']['id'], text=text)
-            # last_message = message['update_id'] + 1
-            # print(last_message)
-            telegram_user_id = int(message['message']['from']['id'])
-            user_search = session.query(User).filter(User.telegram_user_id == telegram_user_id).all()
-            if len(user_search) == 0:
-                user = User(message['message']['from']['first_name'], message['message']['from']['last_name'], telegram_user_id)
-                send_mess(chat=message['message']['chat']['id'], text='Вы - новый пользователь')
-                user.set_update_id(int(message['message']['message_id']))
-                session.add(user)
-                session.commit()
+            if 'callback_query' in message.keys():
+                callback_quary_handler(session, message)
             else:
-                user = user_search[0]
-                if user.get_update_id<int(message['message']['message_id']):
-                    send_mess(chat=message['message']['chat']['id'], text='Пока я тебя не понимаю, ' + str(user) + '!')
-                    user.set_update_id(int(message['message']['message_id']))
-                    session.add(user)
-                    session.commit()
+                message_handler(session, message)
 
 
 
 
-            # ----------------------------------------------------------------------------------------------------------
-            # updates = get_updates_json(API_TELEGRAM_URL)
-            # data = get_last_update(updates)
-            # if mess_id != data['message']['message_id']:
-            #     # text = str(data['message']['from']['id']) + ' ' + data['message']['from']['first_name'] + ' ' + \
-            #     #       data['message']['from']['last_name'] + ' : ' + data['message']['text']
-            #     # print(text)
-            #     # mess_id = data['message']['message_id']
-            #     # send_mess(chat=data['message']['chat']['id'], text=text)
-            #     telegram_user_id = int(data['message']['from']['id'])
-            #     if len(session.query(User).filter(User.telegram_user_id == telegram_user_id).all()) == 0:
-            #         user = User(data['message']['from']['first_name'], data['message']['from']['last_name'],
-            #                     telegram_user_id)
-            #         session.add(user)
-            #         session.commit()
-            #     else:
-            #         user = session.query(User).filter(User.telegram_user_id == telegram_user_id).all()[0]
-            #         print(user)
-            # sleep(3)
-            # ch += 1
 
-            # 127155577
-            # ------------------------------------------------------------------------------------------------------------------
-            # print("Начинается работа чат-бота")
-            # print('*' * 100)
-            # # -------------------------------------------------------------------------------------------------------------------
-            # user_id = ''
-            # while user_id == '':
-            #     try:
-            #         user_id = int(input('Веедите Ваш id: '))
-            #     except:
-            #         user_id = ''
-            #
-            # if len(session.query(User).filter(User.id == user_id).all()) == 0:
-            #     first_name = input('Введите first_name: ')
-            #     last_name = input('Введите last_name: ')
-            #     user = User(user_id, first_name, last_name)
-            #     session.add(user)
-            #     session.commit()
-            # else:
-            #     user = session.query(User).filter(User.id == user_id).all()[0]
-            #     print('Вы вошли как: ' + str(user))
-            # # -------------------------------------------------------------------------------------------------------------------
-            # print('*' * 100)
-            # # -------------------------------------------------------------------------------------------------------------------
-            # print_menu()
+                # ----------------------------------------------------------------------------------------------------------
+                # updates = get_updates_json(API_TELEGRAM_URL)
+                # data = get_last_update(updates)
+                # if mess_id != data['message']['message_id']:
+                #     # text = str(data['message']['from']['id']) + ' ' + data['message']['from']['first_name'] + ' ' + \
+                #     #       data['message']['from']['last_name'] + ' : ' + data['message']['text']
+                #     # print(text)
+                #     # mess_id = data['message']['message_id']
+                #     # send_mess(chat=data['message']['chat']['id'], text=text)
+                #     telegram_user_id = int(data['message']['from']['id'])
+                #     if len(session.query(User).filter(User.telegram_user_id == telegram_user_id).all()) == 0:
+                #         user = User(data['message']['from']['first_name'], data['message']['from']['last_name'],
+                #                     telegram_user_id)
+                #         session.add(user)
+                #         session.commit()
+                #     else:
+                #         user = session.query(User).filter(User.telegram_user_id == telegram_user_id).all()[0]
+                #         print(user)
+                # sleep(3)
+                # ch += 1
+
+                # 127155577
+                # ------------------------------------------------------------------------------------------------------------------
+                # print("Начинается работа чат-бота")
+                # print('*' * 100)
+                # # -------------------------------------------------------------------------------------------------------------------
+                # user_id = ''
+                # while user_id == '':
+                #     try:
+                #         user_id = int(input('Веедите Ваш id: '))
+                #     except:
+                #         user_id = ''
+                #
+                # if len(session.query(User).filter(User.id == user_id).all()) == 0:
+                #     first_name = input('Введите first_name: ')
+                #     last_name = input('Введите last_name: ')
+                #     user = User(user_id, first_name, last_name)
+                #     session.add(user)
+                #     session.commit()
+                # else:
+                #     user = session.query(User).filter(User.id == user_id).all()[0]
+                #     print('Вы вошли как: ' + str(user))
+                # # -------------------------------------------------------------------------------------------------------------------
+                # print('*' * 100)
+                # # -------------------------------------------------------------------------------------------------------------------
+                # print_menu()
