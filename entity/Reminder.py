@@ -1,64 +1,12 @@
-import datetime
-
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import create_engine
+import Mapper
 from sqlalchemy import Column, Integer, String, Date, Time, Boolean, Enum
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import relationship
-import enum
-
-Base = declarative_base()
-COONECTION_STRING = "postgresql+pg8000://postgres:123@localhost/remember_me"
-#COONECTION_STRING = "postgresql+pg8000://SYSDBA:masterkey@localhost/remember_me"
-
-class User(Base):
-    __tablename__ = 'user'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    first_name = Column(String)
-    last_name = Column(String)
-    reminders = relationship("Reminder", backref="user")
-    telegram_user_id = Column(Integer, unique=True)
-    update_id = Column(Integer)
-    user_action = Column(Enum(UserActionType))
-
-    @property
-    def get_id(self):
-        return self.id
-
-    @property
-    def get_update_id(self):
-        return int(self.update_id) if self.update_id!=None else 0
-
-    def set_update_id(self, update_id):
-        self.update_id = int(update_id)
-
-    def __init__(self, first_name, last_name, telegram_user_id):
-        self.first_name = str(first_name)
-        self.last_name = str(last_name)
-        self.telegram_user_id = telegram_user_id
-        self.user_action = UserActionType.MAIN_MENU
-
-    def __repr__(self):
-        return self.first_name + ' ' + self.last_name
-
-    def __str__(self):
-        return self.first_name + ' ' + self.last_name
+from entity.CircleType import CircleType as CircleType
+import datetime
 
 
-class CircleType(enum.Enum):
-    none_circle = 'none_circle'
-    day_circle = 'day_circle'
-    week_circle = 'week_circle'
-    month_circle = 'month_circle'
-    year_circle = 'year_circle'
 
-class UserActionType(enum.Enum):
-    MAIN_MENU = 'main_menu'
-    DATE_INPUT = 'date_input'
-    TIME_INPUT = 'time_input'
-
-
-class Reminder(Base):
+class Reminder(Mapper.Base):
     __tablename__ = 'reminder'
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(ForeignKey('user.id'))
@@ -109,8 +57,8 @@ class Reminder(Base):
             else:
                 return old_date.replace(old_date.year, old_date.month + 1)
         elif circle_type == CircleType.year_circle:
-            return old_date.replace(old_date.year+1)
+            return old_date.replace(old_date.year + 1)
 
 
-engine = create_engine(COONECTION_STRING, client_encoding='utf8')
-Base.metadata.create_all(engine)
+# engine = create_engine(constants_list.COONECTION_STRING, client_encoding='utf8')
+# Base.metadata.create_all(engine)
