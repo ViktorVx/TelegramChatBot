@@ -343,7 +343,8 @@ def create_reminder_handler(chat_id):
         is_reminder_circle_selection(chat_id)
         REMINDER_CREATION_STEP = 7
     elif REMINDER_CREATION_STEP ==8:
-        pass
+        circle_period_selection(chat_id)
+        REMINDER_CREATION_STEP = 9
     # tx_date = input('Введите дату напоминания: ')
     # date = extract_date(tx_date)
     # # **********************************************
@@ -426,6 +427,8 @@ def is_reminder_circle_selection(chat_id):
 
 # ****************************************
 def user_entry(session, message):
+    first_name = ''
+    last_name = ''
     if 'callback_query' in message.keys():
         telegram_user_id = int(message['callback_query']['from']['id'])
     else:
@@ -433,8 +436,16 @@ def user_entry(session, message):
 
     user_search = session.query(User).filter(User.telegram_user_id == telegram_user_id).all()
     if len(user_search) == 0:
-        user = User(message['message']['from']['first_name'], message['message']['from']['last_name'],
-                    telegram_user_id)
+        try:
+            first_name = message['message']['from']['first_name']
+        except:
+            pass
+        try:
+            last_name = message['message']['from']['last_name']
+        except:
+            pass
+
+        user = User(first_name, last_name, telegram_user_id)
         send_message(chat=message['message']['chat']['id'], text='Вы - новый пользователь')
         return user
     else:

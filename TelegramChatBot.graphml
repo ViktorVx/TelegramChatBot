@@ -18,7 +18,7 @@
       <data key="d4"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="203.0" width="171.0" x="-48.0" y="147.0"/>
+          <y:Geometry height="203.0" width="171.0" x="-432.0" y="1.0"/>
           <y:Fill color="#CCFFCC" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="32.9072265625" x="69.04638671875" y="3.0">User<y:LabelModel>
@@ -44,7 +44,7 @@ update_id : integer
       <data key="d4"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="192.0" width="231.0" x="252.0" y="147.0"/>
+          <y:Geometry height="192.0" width="231.0" x="-132.0" y="1.0"/>
           <y:Fill color="#CCFFCC" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="63.9599609375" x="83.52001953125" y="3.0">Reminder<y:LabelModel>
@@ -73,7 +73,7 @@ parentReminder: Reminder</y:MethodLabel>
       <data key="d4"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="147.0" width="231.0" x="252.0" y="-36.0"/>
+          <y:Geometry height="147.0" width="231.0" x="-132.0" y="-182.0"/>
           <y:Fill color="#CCFFCC" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="70.47265625" x="80.263671875" y="3.0">CircleType<y:LabelModel>
@@ -100,8 +100,8 @@ year - год
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="40.599999999999966">
-            <y:Point x="202.5" y="243.0"/>
-            <y:Point x="202.5" y="289.09999999999997"/>
+            <y:Point x="-181.5" y="97.0"/>
+            <y:Point x="-181.5" y="143.09999999999997"/>
           </y:Path>
           <y:LineStyle color="#000000" type="line" width="1.0"/>
           <y:Arrows source="none" target="standard"/>

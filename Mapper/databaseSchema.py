@@ -19,6 +19,7 @@ class User(Base):
     reminders = relationship("Reminder", backref="user")
     telegram_user_id = Column(Integer, unique=True)
     update_id = Column(Integer)
+    user_action = Column(Enum(UserActionType))
 
     @property
     def get_id(self):
@@ -35,6 +36,7 @@ class User(Base):
         self.first_name = str(first_name)
         self.last_name = str(last_name)
         self.telegram_user_id = telegram_user_id
+        self.user_action = UserActionType.MAIN_MENU
 
     def __repr__(self):
         return self.first_name + ' ' + self.last_name
@@ -49,6 +51,11 @@ class CircleType(enum.Enum):
     week_circle = 'week_circle'
     month_circle = 'month_circle'
     year_circle = 'year_circle'
+
+class UserActionType(enum.Enum):
+    MAIN_MENU = 'main_menu'
+    DATE_INPUT = 'date_input'
+    TIME_INPUT = 'time_input'
 
 
 class Reminder(Base):
